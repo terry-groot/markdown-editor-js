@@ -1,0 +1,27 @@
+# 相依套件
+node_modules/
+
+# 建置輸出
+dist/
+build/
+
+# 環境變數
+.env
+.env.local
+.env.*.local
+
+# 日誌
+*.log
+npm-debug.log*
+
+# 作業系統
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# 編輯器
+.vscode/
+.idea/
+*.swp
+*~
