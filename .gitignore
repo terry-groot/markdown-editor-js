@@ -25,3 +25,7 @@ Desktop.ini
 .idea/
 *.swp
 *~
+
+# 測試用輸出檔
+qq.md
+zz.md
