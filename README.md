@@ -1,6 +1,6 @@
 # Markdown Editor
 
-單一 HTML 檔案的 Markdown 編輯器，即時預覽、多分頁，並可直接讀寫本機檔案。不需安裝、不需建置、沒有後端。
+純前端的 Markdown 編輯器，即時預覽、多分頁，並可直接讀寫本機檔案。不需安裝、不需建置、沒有後端，也不需要網路。
 
 ## 快速開始
 
@@ -47,7 +47,9 @@ cd markdown-editor-js
 
 ## 相依套件
 
-由 CDN 載入，因此**首次使用需要網路連線**：
+已放在 `vendor/` 內，**完全離線可用**，不依賴 CDN：
 
 - [marked](https://github.com/markedjs/marked) 12.0.2 — Markdown 解析
-- [highlight.js](https://highlightjs.org/) 11.9.0 — 程式碼語法高亮
+- [highlight.js](https://highlightjs.org/) 11.9.0 — 程式碼語法高亮（common 語言版，含 36 種語言）
+
+`index.html` 以相對路徑引用 `vendor/`，搬移時請整個資料夾一起搬。
