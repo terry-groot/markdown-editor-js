@@ -20,9 +20,10 @@ ehthumbs.db
 Desktop.ini
 .DS_Store
 
-# 編輯器
+# 編輯器 / 開發工具
 .vscode/
 .idea/
+.claude/
 *.swp
 *~
 
