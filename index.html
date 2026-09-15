@@ -6,6 +6,7 @@
 <title>Markdown Editor</title>
 <script src="vendor/marked.min.js"></script>
 <script src="vendor/highlight.min.js"></script>
+<script src="vendor/mermaid.min.js"></script>
 <link rel="stylesheet" href="vendor/github.min.css" id="hljs-light">
 <link rel="stylesheet" href="vendor/github-dark.min.css" id="hljs-dark" disabled>
 <style>
@@ -404,6 +405,37 @@ body {
   background: var(--accent);
 }
 
+/* Editor pane toggle */
+.editor-pane.hidden, .editor-pane.hidden + .splitter {
+  display: none;
+}
+
+.toolbar button.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+/* Mermaid */
+#preview .mermaid-container {
+  margin: 12px 0;
+  text-align: center;
+  overflow-x: auto;
+}
+
+#preview .mermaid-container svg {
+  max-width: 100%;
+}
+
+#preview .mermaid-error {
+  color: #e55;
+  font-size: 13px;
+  padding: 8px;
+  border: 1px solid #e55;
+  border-radius: 4px;
+  margin: 12px 0;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .main {
@@ -466,6 +498,7 @@ body {
     <button onclick="saveFile()" title="Save (Ctrl+S)">&#128190; Save</button>
     <button onclick="saveFileAs()" title="Save As (Ctrl+Shift+S)">&#128190; Save As</button>
     <button onclick="reloadFile()" title="Reload from disk (F5)">&#8635; Reload</button>
+    <button onclick="toggleEditor()" title="Toggle Editor (Ctrl+E)" id="editor-toggle-btn">&#9998; Editor</button>
     <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme" id="theme-btn">&#9789;</button>
   </div>
 </div>
@@ -508,15 +541,26 @@ const statusWords = document.getElementById('status-words');
 const statusChars = document.getElementById('status-chars');
 const themeBtn = document.getElementById('theme-btn');
 
+mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
+
+marked.use({
+  renderer: {
+    code(code, lang) {
+      if (lang === 'mermaid') {
+        return '<div class="mermaid-container"><pre class="mermaid">' + code + '</pre></div>';
+      }
+      if (lang && hljs.getLanguage(lang)) {
+        const highlighted = hljs.highlight(code, { language: lang }).value;
+        return '<pre><code class="hljs language-' + lang + '">' + highlighted + '</code></pre>';
+      }
+      return '<pre><code>' + code + '</code></pre>';
+    }
+  }
+});
+
 marked.setOptions({
   breaks: true,
-  gfm: true,
-  highlight: function(code, lang) {
-    if (lang && hljs.getLanguage(lang)) {
-      return hljs.highlight(code, { language: lang }).value;
-    }
-    return hljs.highlightAuto(code).value;
-  }
+  gfm: true
 });
 
 let tabs = [];
@@ -689,11 +733,23 @@ function renderTabs() {
   });
 }
 
-function updatePreview() {
+let mermaidId = 0;
+
+async function updatePreview() {
   preview.innerHTML = marked.parse(editor.value);
-  preview.querySelectorAll('pre code').forEach(block => {
-    hljs.highlightElement(block);
-  });
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  mermaid.initialize({ startOnLoad: false, theme: isDark ? 'dark' : 'default', securityLevel: 'loose' });
+  const mermaidBlocks = preview.querySelectorAll('pre.mermaid');
+  for (const block of mermaidBlocks) {
+    const graphDef = block.textContent;
+    const id = 'mermaid-' + (++mermaidId);
+    try {
+      const { svg } = await mermaid.render(id, graphDef);
+      block.innerHTML = svg;
+    } catch (e) {
+      block.innerHTML = '<div class="mermaid-error">Mermaid syntax error: ' + e.message + '</div>';
+    }
+  }
 }
 
 function updateStatus() {
@@ -835,6 +891,10 @@ document.addEventListener('keydown', function(e) {
       e.preventDefault();
       openFile();
       break;
+    case 'e':
+      e.preventDefault();
+      toggleEditor();
+      break;
     case 's':
       e.preventDefault();
       if (e.shiftKey) {
@@ -881,6 +941,14 @@ function loadTheme() {
       document.getElementById('hljs-dark').disabled = false;
     }
   } catch (e) {}
+}
+
+// Editor pane toggle
+function toggleEditor() {
+  const editorPane = document.querySelector('.editor-pane');
+  const btn = document.getElementById('editor-toggle-btn');
+  editorPane.classList.toggle('hidden');
+  btn.classList.toggle('active', !editorPane.classList.contains('hidden'));
 }
 
 // File operations using File System Access API
